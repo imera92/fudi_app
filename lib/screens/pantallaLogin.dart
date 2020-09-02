@@ -1,4 +1,9 @@
 import 'package:flutter/material.dart';
+import '../widgets/passwordField.dart';
+import 'package:http/http.dart' as http;
+import '../constants.dart' as Constants;
+import 'dart:convert' show jsonEncode, jsonDecode;
+import 'package:shared_preferences/shared_preferences.dart';
 
 class PantallaLogin extends StatefulWidget {
   PantallaLogin({Key key, this.title}) : super(key: key);
@@ -10,6 +15,9 @@ class PantallaLogin extends StatefulWidget {
 }
 
 class PantallaLoginState extends State<PantallaLogin> {
+  final _usuarioController = TextEditingController();
+  final _passwordController = TextEditingController();
+
   Widget _btnRegresar() {
     return FlatButton(
       color: Colors.white,
@@ -34,25 +42,12 @@ class PantallaLoginState extends State<PantallaLogin> {
   Widget _inputUsuario() {
     return Container(
       child: TextField(
+        controller: _usuarioController,
         decoration: InputDecoration(
           border: commonFieldBorder,
           focusedBorder: commonFieldFocusedBorder,
-          labelText: 'Correo electrónico',
+          labelText: 'Usuario o Correo electrónico',
         )
-      ),
-    );
-  }
-
-  Widget _inputPassword() {
-    return Container(
-      margin: EdgeInsets.only(top: 15),
-      child: TextField(
-        decoration: InputDecoration(
-          border: commonFieldBorder,
-          focusedBorder: commonFieldFocusedBorder,
-          labelText: 'Contraseña',
-        ),
-        obscureText: true,
       ),
     );
   }
@@ -60,10 +55,7 @@ class PantallaLoginState extends State<PantallaLogin> {
   Widget _btnLogin() {
     return InkWell(
       onTap: () {
-        /*Navigator.push(
-            context, MaterialPageRoute(builder: (context) => PantallaLogin())
-        );*/
-        return null;
+        _login();
       },
       child: Container(
         margin: EdgeInsets.only(top: 15),
@@ -96,6 +88,69 @@ class PantallaLoginState extends State<PantallaLogin> {
     );
   }
 
+  void _login() {
+    String usuario = _usuarioController.text;
+    String password = _passwordController.text;
+    String mensajeError = 'Lo sentimos, no puedes iniciar sesión en este momento. Vuelve a intentarlo más tarde.';
+
+    http.post(
+      Constants.API_URL_LOGIN,
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: jsonEncode(<String, String>{
+        'username': usuario,
+        'password': password
+      }),
+    ).then((response) async {
+      if(response.statusCode == 200){
+        Map<String, dynamic> tokens = jsonDecode(response.body);
+
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        await prefs.setString('token_access', tokens['access']);
+        await prefs.setString('token_refresh', tokens['refresh']);
+        await prefs.setBool('is_authenticated', true);
+      } else {
+        /*if(jsonDecode(response.body)['error'] == 'userExists'){
+          mensajeError = 'Lo sentimos, el usuario/contraseña no son válidos.';
+        }*/
+        showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                  content: Text(mensajeError),
+                  actions: <Widget>[
+                    FlatButton(
+                      child: Text('Aceptar'),
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                    ),
+                  ]
+              );
+            }
+        );
+      }
+    }).catchError((error){
+      showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+                content: Text(mensajeError),
+                actions: <Widget>[
+                  FlatButton(
+                    child: Text('Aceptar'),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                ]
+            );
+          }
+      );
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -123,7 +178,7 @@ class PantallaLoginState extends State<PantallaLogin> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: <Widget>[
                       _inputUsuario(),
-                      _inputPassword(),
+                      PasswordField(_passwordController),
                       _btnLogin()
                     ]
                 ),
