@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import '../constants.dart' as Constants;
 import 'dart:convert' show jsonEncode, jsonDecode;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'initialScreen.dart';
 
 class PantallaLogin extends StatefulWidget {
   PantallaLogin({Key key, this.title}) : super(key: key);
@@ -110,10 +111,11 @@ class PantallaLoginState extends State<PantallaLogin> {
         await prefs.setString('token_access', tokens['access']);
         await prefs.setString('token_refresh', tokens['refresh']);
         await prefs.setBool('is_authenticated', true);
+        Navigator.of(context, rootNavigator: true).pushNamedAndRemoveUntil('/', (Route<dynamic> route) => false);
       } else {
-        /*if(jsonDecode(response.body)['error'] == 'userExists'){
+        if(jsonDecode(response.body)['error'] == 'userExists'){
           mensajeError = 'Lo sentimos, el usuario/contraseña no son válidos.';
-        }*/
+        }
         showDialog(
             context: context,
             builder: (BuildContext context) {
