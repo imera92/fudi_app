@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert' show jsonEncode, jsonDecode;
 import 'package:oktoast/oktoast.dart';
+import '../constants.dart' as Constants;
 
 class PantallaRegistro extends StatefulWidget {
   PantallaRegistro({Key key, this.title}) : super(key: key);
@@ -126,7 +127,7 @@ class PantallaRegistroState extends State<PantallaRegistro> {
     String mensajeError = 'Lo sentimos, no podemos registrar tu cuenta en este momento. Vuelve a intentarlo más tarde.';
 
     http.post(
-      'http://192.168.100.118:8000/api/movil/registrar_usuario/',
+      Constants.API_URL_REGISTRAR_USUARIO,
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
       },
