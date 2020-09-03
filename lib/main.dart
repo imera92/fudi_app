@@ -37,6 +37,7 @@ class MyAppState extends State<MyApp> {
         theme: ThemeData(
           primarySwatch: Colors.blue,
           visualDensity: VisualDensity.adaptivePlatformDensity,
+          fontFamily: 'Made Future X',
         ),
         // home: InitialScreen(),
         initialRoute: _rutaInicial,

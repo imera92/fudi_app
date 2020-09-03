@@ -24,6 +24,7 @@ dependencies:
   http: ^0.12.2
   oktoast: ^2.3.2
   shared_preferences: ^0.5.10
+  geolocator: ^6.0.0
   flutter:
     sdk: flutter
 
@@ -49,6 +50,10 @@ flutter:
 
   assets:
     - assets/images/fudi_logo.png
+    - assets/images/cafeterias.png
+    - assets/images/mexicana.png
+    - assets/images/rapida.png
+    - assets/images/tipica.png
 
   # To add assets to your application, add an assets section, like this:
   # assets:
@@ -80,3 +85,14 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/custom-fonts/#from-packages
+
+  fonts:
+    - family: Made Future X
+      fonts:
+        - asset: assets/fonts/made-future-x-thin.otf
+          weight: 200
+        - asset: assets/fonts/made-future-x-regular.otf
+        - asset: assets/fonts/made-future-x-bold.otf
+          weight: 700
+        - asset: assets/fonts/made-future-x-black.otf
+          weight: 900
