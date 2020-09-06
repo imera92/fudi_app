@@ -8,6 +8,7 @@ Future main() async {
   WidgetsFlutterBinding.ensureInitialized();
   String rutaInicial = '';
   SharedPreferences prefs = await SharedPreferences.getInstance();
+  await prefs.clear();
   bool authentication = await prefs.getBool('is_authenticated') ?? false;
   rutaInicial = authentication ? '/' : '/pantallaInicial';
 

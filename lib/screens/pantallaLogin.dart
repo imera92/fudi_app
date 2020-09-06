@@ -108,6 +108,8 @@ class PantallaLoginState extends State<PantallaLogin> {
         Map<String, dynamic> tokens = jsonDecode(response.body);
 
         SharedPreferences prefs = await SharedPreferences.getInstance();
+        await prefs.setString('username', usuario);
+        await prefs.setString('password', password);
         await prefs.setString('token_access', tokens['access']);
         await prefs.setString('token_refresh', tokens['refresh']);
         await prefs.setBool('is_authenticated', true);
