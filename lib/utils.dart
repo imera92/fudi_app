@@ -4,6 +4,7 @@ import 'constants.dart' as Constants;
 import 'dart:convert' show jsonEncode, jsonDecode;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:geolocator/geolocator.dart';
+import './bloc/itemCarritoBloc.dart';
 
 void verificarTokens(String access_token, String refresh_token, SharedPreferences prefs) async {
   bool acces_token_is_valid = true;
@@ -138,4 +139,33 @@ Future<List> consultarRestaurantes({String categoria_busqueda = '', String termi
     return data['restaurantes'];
   }
   return [];
+}
+
+Future<Map> consultarMenuRestaurante(int restauranteId) async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  String access_token = prefs.getString('token_access');
+  String refresh_token = prefs.getString('token_refresh');
+
+  await verificarTokens(access_token, refresh_token, prefs);
+  access_token = prefs.getString('token_access');
+
+  http.Response response = await http.get(
+      Constants.API_URL_GET_MENU_RESTAURANTE + restauranteId.toString(),
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+        'Authorization': 'Bearer ' + access_token,
+      }
+  );
+
+  if (response.statusCode == 200) {
+    Map data = jsonDecode(response.body);
+    for (Map categoria in data['categorias']) {
+      bloc.anadirCategoria(categoria);
+    }
+    for (Map producto in data['productos']) {
+      bloc.anadirProductoRestaurante(producto);
+    }
+    return data;
+  }
+  return {};
 }

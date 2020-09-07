@@ -7,16 +7,25 @@ import 'dart:convert' show jsonEncode, jsonDecode;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:geolocator/geolocator.dart';
 import '../utils.dart';
+import '../bloc/itemCarritoBloc.dart';
 
 class PantallaPrincipalNavigatorRoutes {
   static const String root = '/';
   static const String tiendas = '/tiendas';
+  static const String menu = '/menu';
 }
 
 class ScreenArguments {
   final List listaRestaurantes;
 
   ScreenArguments(this.listaRestaurantes);
+}
+
+class MenuArguments {
+  final String nombreRestaurante;
+  final int idRestaurante;
+
+  MenuArguments(this.nombreRestaurante, this.idRestaurante);
 }
 
 class PantallaPrincipal extends StatefulWidget {
@@ -148,9 +157,15 @@ class PantallaPrincipalState extends State<PantallaPrincipal> {
         initialRoute: '/',
         onGenerateRoute: (routeSettings) {
           if (routeSettings.name == PantallaPrincipalNavigatorRoutes.tiendas) {
-            debugPrint(routeSettings.arguments.toString());
             return MaterialPageRoute(
                 builder: (context) => PantallaTiendas(routeSettings.arguments)
+            );
+          }
+
+          if (routeSettings.name == PantallaPrincipalNavigatorRoutes.menu) {
+            MenuArguments datosRestaurante = routeSettings.arguments;
+            return MaterialPageRoute(
+              builder: (context) => PantallaMenu(datosRestaurante.nombreRestaurante, datosRestaurante.idRestaurante)
             );
           }
 
@@ -241,7 +256,14 @@ class PantallaTiendasState extends State<PantallaTiendas> {
               ],
             ),
           ),
-          onTap: () {},
+          onTap: () {
+            MenuArguments dataRestaurante = MenuArguments(restaurante['nombre'], restaurante['id']);
+            Navigator.pushNamed(
+                context,
+                PantallaPrincipalNavigatorRoutes.menu,
+                arguments: dataRestaurante
+            );
+          },
         ),
       );
     }
@@ -277,6 +299,253 @@ class PantallaTiendasState extends State<PantallaTiendas> {
               crossAxisCount: 1,
               children: restaurantes,
             ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class PantallaMenu extends StatefulWidget {
+  PantallaMenu(this.nombreRestaurante, this.restauranteId, {Key key, this.title}) : super(key: key);
+
+  final String title;
+  final String nombreRestaurante;
+  final int restauranteId;
+
+  @override
+  PantallaMenuState createState() => PantallaMenuState(nombreRestaurante, restauranteId);
+}
+
+class PantallaMenuState extends State<PantallaMenu> {
+  final String _nombreRestaurante;
+  final int _restauranteId;
+  // Future<List> _categorias;
+  // Future<Map> _restaurantes;
+  Future<Map> _restauranteData;
+
+  PantallaMenuState(this._nombreRestaurante, this._restauranteId);
+
+  @override
+  void initState() {
+    _restauranteData = consultarMenuRestaurante(_restauranteId);
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+
+    return Container(
+      color: Colors.white,
+      child: ListView(
+        children: <Widget>[
+          Stack(
+            alignment: Alignment.bottomLeft,
+            children: <Widget>[
+              Image.asset('assets/images/default_banner.png', width: double.infinity),
+              Container(
+                width: double.infinity,
+                padding: EdgeInsets.all(15),
+                decoration: BoxDecoration(
+                  color: Color.fromARGB(175, 255, 255, 255),
+                ),
+                child: Text(
+                  _nombreRestaurante,
+                 style: TextStyle(
+                   color: Colors.black87,
+                   fontSize: 18,
+                   fontWeight: FontWeight.bold
+                 )
+                ),
+              ),
+            ],
+          ),
+          StreamBuilder(
+            initialData: bloc.allItems,
+            stream: bloc.getStream,
+            builder: (context, AsyncSnapshot snapshot) {
+              List<Widget> categoriasWidgets = List<Widget>();
+
+              for (Map categoria in snapshot.data['categorias']) {
+                categoriasWidgets.add(
+                  GestureDetector(
+                    child: Container(
+                      child: Text(
+                        categoria['nombre'],
+                        style: TextStyle(
+                          color: snapshot.data['categoriaEnPantalla'] == categoria['id'] ? Colors.white : Colors.black54,
+                        )
+                      ),
+                      margin: EdgeInsets.only(right: 15),
+                      padding: EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.all(Radius.circular(15)),
+                        border: Border.all(color: Color.fromARGB(255, 134, 5, 65), width: 2),
+                        color: snapshot.data['categoriaEnPantalla'] == categoria['id'] ? Color.fromARGB(255, 134, 5, 65) : Colors.white
+                      )
+                    ),
+                    onTap: () {
+                      bloc.setCategoriaEnPantalla(categoria['id']);
+                    },
+                  ),
+                );
+              }
+
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Container(
+                    child: Text(
+                      'Menú',
+                      style: TextStyle(
+                        color: Colors.black87,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold
+                      ),
+                    ),
+                    padding: EdgeInsets.only(top: 20, right: 15, bottom: 20, left: 15),
+                  ),
+                  Container(
+                    height: 62.5,
+                    padding: EdgeInsets.only(right: 5, bottom: 20, left: 5),
+                    margin: EdgeInsets.symmetric(horizontal: 10),
+                    decoration: BoxDecoration(
+                      border: Border(
+                        bottom: BorderSide(
+                          color: Color.fromARGB(255, 134, 5, 65),
+                        ),
+                      ),
+                    ),
+                    child: ListView(
+                      scrollDirection: Axis.horizontal,
+                      children: categoriasWidgets
+                    ),
+                  ),
+                ],
+              );
+            }
+          ),
+          StreamBuilder(
+            initialData: bloc.allItems,
+            stream: bloc.getStream,
+            builder: (context, AsyncSnapshot snapshot) {
+              List<Widget> productosWidgets = List<Widget>();
+
+              if (snapshot.data['categoriaEnPantalla'] != Null) {
+                for (Map producto in snapshot.data['productos'][snapshot.data['categoriaEnPantalla']]) {
+
+                  List<Widget> botones = [
+                    GestureDetector(
+                      child: Container(
+                        padding: EdgeInsets.all(5),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(6),
+                          color: Color.fromARGB(255, 134, 5, 65),
+                        ),
+                        child: Icon(
+                            Icons.add,
+                            color: Colors.white
+                        ),
+                      ),
+                      onTap: (){
+                        bloc.anadirAlCarrito(producto);
+                      },
+                    ),
+                  ];
+                  bool productoEnCarrito = snapshot.data['items_carrito'].containsKey(producto['id']);
+                  if (productoEnCarrito) {
+                    botones.add(
+                      GestureDetector(
+                        child: Container(
+                          margin: EdgeInsets.only(left: 5),
+                          padding: EdgeInsets.all(5),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(6),
+                            color: Color.fromARGB(255, 134, 5, 65),
+                          ),
+                          child: Icon(
+                              Icons.remove,
+                              color: Colors.white
+                          ),
+                        ),
+                        onTap: (){
+                          bloc.quitarDelCarrito(producto);
+                        },
+                      )
+                    );
+                  }
+
+                  productosWidgets.add(
+                    Container(
+                      decoration: BoxDecoration(
+                        border: Border(
+                          bottom: BorderSide(
+                            color: Color.fromARGB(255, 134, 5, 65),
+                          ),
+                        )
+                      ),
+                      margin: EdgeInsets.only(left: 15, right: 15),
+                      padding: EdgeInsets.only(top:15, right: 5, left: 5, bottom: 15),
+                      child: Row(
+                        children: <Widget>[
+                          Container(
+                            child: Image.network(
+                              Constants.MEDIA_ROOT + producto['imagen'],
+                              width: 100,
+                            ),
+                          ),
+                          SizedBox(
+                            width: 15,
+                          ),
+                          Expanded(
+                            child: Container(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: <Widget>[
+                                  Text(
+                                    producto['nombre'],
+                                    style: TextStyle(
+                                        color: Colors.black87,
+                                        fontWeight: FontWeight.bold
+                                    ),
+                                  ),
+                                  Container(
+                                    child: Row(
+                                      crossAxisAlignment: CrossAxisAlignment.end,
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: <Widget>[
+                                        Text(
+                                          '\$' + producto['precio'],
+                                          style: TextStyle(
+                                              color: Colors.black87,
+                                              fontWeight: FontWeight.bold
+                                          ),
+                                        ),
+                                        Expanded(
+                                          child: Row(
+                                            mainAxisAlignment: MainAxisAlignment.end,
+                                            children: botones,
+                                          ),
+                                        ),
+                                        // productoEnCarrito ? Text ('coso') : null
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ]
+                      ),
+                    ),
+                  );
+                }
+              }
+
+              return Column(
+                children: productosWidgets,
+              );
+            }
           ),
         ],
       ),
