@@ -12,11 +12,11 @@ class ItemsCarritoBloc {
     'categoriaEnPantalla': Null
   };
 
-  /*void reset() {
+  void resetRestaurante() {
     allItems['categorias'] = [];
     allItems['productos'] = {};
-    allItems['items_carrito'] = [];
-  }*/
+    allItems['categoriaEnPantalla'] = Null;
+  }
 
   void anadirCategoria(categoria) {
     allItems['categorias'].add(categoria);

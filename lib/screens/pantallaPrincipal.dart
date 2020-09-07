@@ -176,45 +176,71 @@ class PantallaPrincipalState extends State<PantallaPrincipal> {
       ),
       Center(
         child: Text('Aquí van las órdenes')
+      ),
+      Center(
+        child: Text('Aquí va el carrito')
       )
     ];
 
     return Scaffold(
       body: tabs[_currentIndex],
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentIndex,
-        type: BottomNavigationBarType.fixed,
-        backgroundColor: Colors.white,
-        selectedItemColor: Color.fromARGB(255, 219, 29, 45),
-        selectedFontSize: 12,
-        items: [
-          BottomNavigationBarItem(
-            icon: Container(
-              child: Icon(Icons.search),
-              padding: EdgeInsets.symmetric(vertical: 5),
+      bottomNavigationBar: StreamBuilder(
+        initialData: bloc.allItems,
+        stream: bloc.getStream,
+        builder: (context, AsyncSnapshot snapshot) {
+          List<BottomNavigationBarItem> navigationItems = [
+            BottomNavigationBarItem(
+                icon: Container(
+                  child: Icon(Icons.search),
+                  padding: EdgeInsets.symmetric(vertical: 5),
+                ),
+                title: Container(
+                  child: Text('Buscar'),
+                  padding: EdgeInsets.only(bottom: 5),
+                )
             ),
-            title: Container(
-              child: Text('Buscar'),
-              padding: EdgeInsets.only(bottom: 5),
-            )
-          ),
-          BottomNavigationBarItem(
-              icon: Container(
-                child: Icon(Icons.description),
-                padding: EdgeInsets.symmetric(vertical: 5),
+            BottomNavigationBarItem(
+                icon: Container(
+                  child: Icon(Icons.description),
+                  padding: EdgeInsets.symmetric(vertical: 5),
+                ),
+                title: Container(
+                  child: Text('Pedidos'),
+                  padding: EdgeInsets.only(bottom: 5),
+                )
+            ),
+          ];
+
+          if (!snapshot.data['items_carrito'].isEmpty) {
+            navigationItems.add(
+              BottomNavigationBarItem(
+                  icon: Container(
+                    child: Icon(Icons.shopping_cart),
+                    padding: EdgeInsets.symmetric(vertical: 5),
+                  ),
+                  title: Container(
+                    child: Text('Carrito'),
+                    padding: EdgeInsets.only(bottom: 5),
+                  )
               ),
-              title: Container(
-                child: Text('Pedidos'),
-                padding: EdgeInsets.only(bottom: 5),
-              )
-          )
-        ],
-        onTap: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
-        },
-      ),
+            );
+          }
+
+          return BottomNavigationBar(
+            currentIndex: _currentIndex,
+            type: BottomNavigationBarType.fixed,
+            backgroundColor: Colors.white,
+            selectedItemColor: Color.fromARGB(255, 219, 29, 45),
+            selectedFontSize: 12,
+            items: navigationItems,
+            onTap: (index) {
+              setState(() {
+                _currentIndex = index;
+              });
+            },
+          );
+        }
+      )
     );
   }
 }

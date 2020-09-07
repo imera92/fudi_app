@@ -158,6 +158,7 @@ Future<Map> consultarMenuRestaurante(int restauranteId) async {
   );
 
   if (response.statusCode == 200) {
+    bloc.resetRestaurante();
     Map data = jsonDecode(response.body);
     for (Map categoria in data['categorias']) {
       bloc.anadirCategoria(categoria);
