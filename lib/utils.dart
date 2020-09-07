@@ -166,6 +166,7 @@ Future<Map> consultarMenuRestaurante(int restauranteId) async {
     for (Map producto in data['productos']) {
       bloc.anadirProductoRestaurante(producto);
     }
+    bloc.setRestauranteEnPantalla(restauranteId);
     return data;
   }
   return {};

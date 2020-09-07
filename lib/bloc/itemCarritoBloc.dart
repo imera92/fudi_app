@@ -9,13 +9,21 @@ class ItemsCarritoBloc {
     'categorias': [],
     'productos': {},
     'items_carrito': {},
-    'categoriaEnPantalla': Null
+    'subtotal_carrito': 0,
+    'categoriaEnPantalla': Null,
+    'restauranteEnPantalla': Null
   };
 
   void resetRestaurante() {
     allItems['categorias'] = [];
     allItems['productos'] = {};
     allItems['categoriaEnPantalla'] = Null;
+    allItems['restauranteEnPantalla'] = Null;
+  }
+
+  void setRestauranteEnPantalla(int restauranteId) {
+    allItems['restauranteEnPantalla'] = restauranteId;
+    carritoStreamController.sink.add(allItems);
   }
 
   void anadirCategoria(categoria) {
@@ -38,12 +46,16 @@ class ItemsCarritoBloc {
   }
 
   void anadirAlCarrito(producto) {
+    if (producto['comercio'] != allItems['restauranteEnPantalla']) {
+      allItems['items_carrito'] = {};
+    }
     if (allItems['items_carrito'].containsKey(producto['id'])) {
       allItems['items_carrito'][producto['id']]['cantidad']++;
     } else {
       allItems['items_carrito'][producto['id']] = producto;
       allItems['items_carrito'][producto['id']]['cantidad'] = 1;
     }
+    actualizarSubtotalCarrito();
     carritoStreamController.sink.add(allItems);
   }
 
@@ -55,7 +67,24 @@ class ItemsCarritoBloc {
         allItems['items_carrito'].remove(producto['id']);
       }
     }
+    actualizarSubtotalCarrito();
     carritoStreamController.sink.add(allItems);
+  }
+
+  int contarProductosCarrito() {
+    if (allItems['items_carrito'].isEmpty) {
+      return 0;
+    } else {
+      int cantidad = 0;
+      allItems['items_carrito'].forEach((id, producto) => cantidad += producto['cantidad']);
+      return cantidad;
+    }
+  }
+
+  void actualizarSubtotalCarrito() {
+    double subtotal = 0;
+    allItems['items_carrito'].forEach((id, producto) => subtotal += (double.parse(producto['precio']) * producto['cantidad']));
+    allItems['subtotal_carrito'] = subtotal;
   }
 
   void removeFromCart(item) {

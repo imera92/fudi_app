@@ -184,6 +184,43 @@ class PantallaPrincipalState extends State<PantallaPrincipal> {
 
     return Scaffold(
       body: tabs[_currentIndex],
+      floatingActionButton: StreamBuilder(
+        initialData: bloc.allItems,
+        stream: bloc.getStream,
+        builder: (context, AsyncSnapshot snapshot) {
+          bool visible = !snapshot.data['items_carrito'].isEmpty;
+          String textoBoton = '';
+
+          if (visible) {
+            textoBoton = 'PEDIR ' + bloc.contarProductosCarrito().toString() + ' POR \$' + snapshot.data['subtotal_carrito'].toString();
+          }
+
+          return Visibility(
+            visible: visible && _currentIndex != 2,
+            child: RaisedButton(
+              padding: EdgeInsets.only(top: 15, right: 50, bottom: 15, left: 50),
+              onPressed: () {
+                setState(() {
+                  _currentIndex = 2;
+                });
+              },
+              color: Color.fromARGB(255, 134, 5, 65),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(50),
+              ),
+              child: Text(
+                textoBoton,
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18
+                )
+              ),
+            ),
+          );
+        }
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       bottomNavigationBar: StreamBuilder(
         initialData: bloc.allItems,
         stream: bloc.getStream,
