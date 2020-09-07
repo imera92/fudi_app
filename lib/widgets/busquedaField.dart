@@ -11,39 +11,47 @@ OutlineInputBorder commonFieldFocusedBorder = OutlineInputBorder(
 
 class BusquedaField extends StatefulWidget {
   final _busquedaController;
+  final Function _callback;
+  final Function _callbackBoton;
 
-  const BusquedaField(this._busquedaController);
+  const BusquedaField(this._busquedaController, this._callback, this._callbackBoton);
 
   @override
-  BusquedaFieldState createState() => BusquedaFieldState(_busquedaController);
+  BusquedaFieldState createState() => BusquedaFieldState(_busquedaController, _callback, _callbackBoton);
 }
 
 class BusquedaFieldState extends State<BusquedaField> {
   final _busquedaController;
+  final _callback;
+  final _callbackBoton;
   bool _ocultarBoton = true;
 
-  BusquedaFieldState(this._busquedaController);
+  BusquedaFieldState(this._busquedaController, this._callback, this._callbackBoton);
 
   Widget _field() {
     return Expanded(
       child: TextField(
-          controller: _busquedaController,
-          decoration: InputDecoration(
-            border: commonFieldBorder,
-            focusedBorder: commonFieldFocusedBorder,
-            hintText: '¿Qué deseas comer?',
-          ),
-          onChanged: (text) {
-            if (text == '') {
-              setState(() {
-                _ocultarBoton = true;
-              });
-            } else if (text != '' && _ocultarBoton) {
-              setState(() {
-                _ocultarBoton = false;
-              });
-            }
+        textInputAction: TextInputAction.search,
+        controller: _busquedaController,
+        decoration: InputDecoration(
+          border: commonFieldBorder,
+          focusedBorder: commonFieldFocusedBorder,
+          hintText: '¿Qué deseas comer?',
+        ),
+        onChanged: (text) {
+          if (text == '') {
+            setState(() {
+              _ocultarBoton = true;
+            });
+          } else if (text != '' && _ocultarBoton) {
+            setState(() {
+              _ocultarBoton = false;
+            });
           }
+        },
+        onSubmitted: (value) {
+          _callback(value);
+        },
       ),
     );
   }
@@ -56,6 +64,7 @@ class BusquedaFieldState extends State<BusquedaField> {
       ),
       onPressed: () {
         _busquedaController.clear();
+        _callbackBoton();
         setState(() {
           _ocultarBoton = true;
         });

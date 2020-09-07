@@ -8,163 +8,156 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:geolocator/geolocator.dart';
 import '../utils.dart';
 
+class PantallaPrincipalNavigatorRoutes {
+  static const String root = '/';
+  static const String tiendas = '/tiendas';
+}
+
+class ScreenArguments {
+  final List listaRestaurantes;
+
+  ScreenArguments(this.listaRestaurantes);
+}
+
 class PantallaPrincipal extends StatefulWidget {
   PantallaPrincipal({Key key, this.title}) : super(key: key);
 
   final String title;
-  final categorias = [
-    {
-      'nombre': 'Comida rápida'
-    }
-  ];
 
   @override
   PantallaPrincipalState createState() => PantallaPrincipalState();
 }
 
 class PantallaPrincipalState extends State<PantallaPrincipal> {
-  double _lat;
-  double _long;
-  List<Widget>_categorias;
   final _busquedaController = TextEditingController();
   int _currentIndex = 0;
+  bool _buscandoRestaurantes = false;
+  List<Widget> _listaRestaurantes = List<Widget>();
 
-  Future<List> consultarCategorias() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String access_token = prefs.getString('token_access');
-    String refresh_token = prefs.getString('token_refresh');
-
-    await verificarTokens(access_token, refresh_token, prefs);
-
-    http.Response response = await http.get(
-      Constants.API_URL_GET_CATEGORIAS,
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-        'Authorization': 'Bearer ' + access_token,
-      },
-    );
-
-    if (response.statusCode == 200) {
-      Map<String, dynamic> data = jsonDecode(response.body);
-      return data['categorias'];
-    }
-    return [];
+  void _submitCallback(String value) {
+    consultarRestaurantes(termino_busqueda:value).then((restaurantesData) {
+      _listaRestaurantes.clear();
+      for (Map restaurante in restaurantesData) {
+        _listaRestaurantes.add(
+          GestureDetector(
+            child: Container(
+              child: Column(
+                children: <Widget>[
+                  Image.asset('assets/images/default_banner.png', width: double.infinity),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                        color: Colors.white,
+                        border: Border.all(color: Color.fromARGB(255, 204, 204, 204))
+                    ),
+                    child: Text(restaurante['nombre']),
+                  )
+                ],
+              ),
+            ),
+            onTap: () {},
+          ),
+        );
+      }
+      setState(() {
+        _buscandoRestaurantes = true;
+      });
+    });
   }
 
-  /*void consultarRestaurantesCercanos() async {
-    String mensajeError = 'Lo sentimos, no podemos buscar restaurantes para ti en este momento. Vuelve a intentarlo más tarde.';
-    Position position = await getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
-    _lat = position.latitude;
-    _long = position.longitude;
+  void _callbackLimpiarBusqueda() {
+    setState(() {
+      _buscandoRestaurantes = false;
+    });
+  }
 
-    http.Response response = await http.post(
-      Constants.API_URL_GET_RESTAURANTES,
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-      },
-      body: jsonEncode(<String, String>{
-        'lat': _lat.toString(),
-        'long': _long.toString()
-      }),
-    );
-
-    if(response.statusCode == 200){
-      List<Widget> restaurantes = List<Widget>();
-      Map<String, dynamic> data = jsonDecode(response.body);
-      List restaurantesData = data['restaurantes'];
-      setState(() {
-        for (Map categoria in categoriasData) {
-          _categorias.add(
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12),
-                color: Color.fromARGB(255, 248, 244, 244),
-              ),
-              child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[
-                    Text(categoria['nombre']),
-                  ],
-                ),
-              ),
-            )
-          );
-        }
-      });
-    } else {
-      showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-                content: Text(mensajeError),
-                actions: <Widget>[
-                  FlatButton(
-                    child: Text('Aceptar'),
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
-                  ),
-                ]
-            );
-          }
-      );
-    }
-  }*/
-
-  @override
-  Widget build(BuildContext context) {
-    final tabs = <Widget>[
-      Container(
+  Map<String, WidgetBuilder> _routeWidgets(BuildContext context) {
+    return {
+      PantallaPrincipalNavigatorRoutes.root: (context) {
+        return Container(
           padding: EdgeInsets.only(top: 30, right: 0, bottom: 40, left: 0),
           color: Colors.white,
           child: FutureBuilder<List>(
-            future: consultarCategorias(),
-            builder: (context, AsyncSnapshot snapshot) {
-              List<Widget> categorias = List<Widget>();
+              future: consultarCategorias(),
+              builder: (context, AsyncSnapshot snapshot) {
+                List<Widget> categorias = List<Widget>();
 
-              if (snapshot.hasData) {
-                List categoriasData = snapshot.data;
+                if (snapshot.hasData) {
+                  List categoriasData = snapshot.data;
 
-                for (Map categoria in categoriasData) {
-                  categorias.add(
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
-                          color: Color.fromARGB(255, 248, 244, 244),
-                        ),
-                        child: Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: <Widget>[
-                              Image.asset('assets/images/' + categoria['imagen'], width: 100),
-                              Text(categoria['nombre']),
-                            ],
+                  for (Map categoria in categoriasData) {
+                    categorias.add(
+                      GestureDetector(
+                        child: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(12),
+                            color: Color.fromARGB(255, 248, 244, 244),
+                          ),
+                          child: Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: <Widget>[
+                                Image.asset('assets/images/' + categoria['imagen'], width: 100),
+                                Text(categoria['nombre']),
+                              ],
+                            ),
                           ),
                         ),
-                      )
-                  );
+                        onTap: () async {
+                          List listaRestaurantes = await consultarRestaurantes(categoria_busqueda: categoria['id'].toString());
+                          Navigator.pushNamed(
+                              context,
+                              PantallaPrincipalNavigatorRoutes.tiendas,
+                              arguments: listaRestaurantes
+                          );
+                        },
+                      ),
+                    );
+                  }
                 }
-              }
 
-              return Column(
-                children: <Widget>[
-                  BusquedaField(_busquedaController),
-                  Expanded(
-                    child: GridView.count(
-                      padding: const EdgeInsets.symmetric(horizontal: 40),
-                      crossAxisSpacing: 10,
-                      mainAxisSpacing: 10,
-                      crossAxisCount: 2,
-                      children: categorias,
+                return Column(
+                  children: <Widget>[
+                    BusquedaField(_busquedaController, _submitCallback, _callbackLimpiarBusqueda),
+                    Expanded(
+                      child: GridView.count(
+                        padding: const EdgeInsets.symmetric(horizontal: 40),
+                        crossAxisSpacing: 10,
+                        mainAxisSpacing: 10,
+                        crossAxisCount: _buscandoRestaurantes ? 1 : 2,
+                        children: _buscandoRestaurantes ? _listaRestaurantes : categorias,
+                      ),
                     ),
-                  ),
-                ],
-              );
-            }
+                  ],
+                );
+              }
           ),
+        );
+      }
+    };
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    var routeWidget = _routeWidgets(context);
+
+    final tabs = <Widget>[
+      Navigator(
+        initialRoute: '/',
+        onGenerateRoute: (routeSettings) {
+          if (routeSettings.name == PantallaPrincipalNavigatorRoutes.tiendas) {
+            debugPrint(routeSettings.arguments.toString());
+            return MaterialPageRoute(
+                builder: (context) => PantallaTiendas(routeSettings.arguments)
+            );
+          }
+
+          return MaterialPageRoute(
+            builder: (context) => routeWidget[routeSettings.name](context)
+          );
+        }
       ),
       Center(
         child: Text('Aquí van las órdenes')
@@ -206,6 +199,86 @@ class PantallaPrincipalState extends State<PantallaPrincipal> {
             _currentIndex = index;
           });
         },
+      ),
+    );
+  }
+}
+
+class PantallaTiendas extends StatefulWidget {
+  PantallaTiendas(this.listaRestaurantes, {Key key, this.title}) : super(key: key);
+
+  final String title;
+  final List listaRestaurantes;
+
+  @override
+  PantallaTiendasState createState() => PantallaTiendasState(listaRestaurantes);
+}
+
+class PantallaTiendasState extends State<PantallaTiendas> {
+  final List _listaRestaurantes;
+
+  PantallaTiendasState(this._listaRestaurantes);
+
+  @override
+  Widget build(BuildContext context) {
+    List<Widget> restaurantes = List<Widget>();
+    for (Map restaurante in _listaRestaurantes) {
+      restaurantes.add(
+        GestureDetector(
+          child: Container(
+            child: Column(
+              children: <Widget>[
+                Image.asset('assets/images/default_banner.png', width: double.infinity),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    border: Border.all(color: Color.fromARGB(255, 204, 204, 204))
+                  ),
+                  child: Text(restaurante['nombre']),
+                )
+              ],
+            ),
+          ),
+          onTap: () {},
+        ),
+      );
+    }
+
+    return Container(
+      padding: EdgeInsets.only(top: 30, right: 0, bottom: 40, left: 0),
+      color: Colors.white,
+      child: Column(
+        children: <Widget>[
+          // BusquedaField(_busquedaController),
+          Container(
+            padding: EdgeInsets.only(top: 20, right: 20, bottom: 20, left: 20),
+              child: Row(
+                children: <Widget>[
+                  IconButton(
+                    icon: Icon(
+                        Icons.arrow_back,
+                        color: Color.fromARGB(255, 219, 29, 45)
+                    ),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                    padding: EdgeInsets.symmetric(vertical: 18),
+                  ),
+                ],
+              )
+          ),
+          Expanded(
+            child: GridView.count(
+              padding: const EdgeInsets.symmetric(horizontal: 40),
+              crossAxisSpacing: 10,
+              mainAxisSpacing: 10,
+              crossAxisCount: 1,
+              children: restaurantes,
+            ),
+          ),
+        ],
       ),
     );
   }

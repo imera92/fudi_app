@@ -9,7 +9,7 @@ Future main() async {
   String rutaInicial = '';
   SharedPreferences prefs = await SharedPreferences.getInstance();
   // await prefs.clear();
-  bool authentication = await prefs.getBool('is_authenticated') ?? false;
+   bool authentication = await prefs.getBool('is_authenticated') ?? false;
   rutaInicial = authentication ? '/' : '/pantallaInicial';
 
   runApp(MyApp(rutaInicial));

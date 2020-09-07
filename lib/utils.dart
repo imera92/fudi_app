@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'constants.dart' as Constants;
 import 'dart:convert' show jsonEncode, jsonDecode;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:geolocator/geolocator.dart';
 
 void verificarTokens(String access_token, String refresh_token, SharedPreferences prefs) async {
   bool acces_token_is_valid = true;
@@ -77,4 +78,64 @@ void verificarTokens(String access_token, String refresh_token, SharedPreference
       }
     }
   }
+}
+
+Future<List> consultarCategorias() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  String access_token = prefs.getString('token_access');
+  String refresh_token = prefs.getString('token_refresh');
+
+  await verificarTokens(access_token, refresh_token, prefs);
+  access_token = prefs.getString('token_access');
+
+  http.Response response = await http.get(
+    Constants.API_URL_GET_CATEGORIAS,
+    headers: <String, String>{
+      'Content-Type': 'application/json; charset=UTF-8',
+      'Authorization': 'Bearer ' + access_token,
+    },
+  );
+
+  if (response.statusCode == 200) {
+    Map<String, dynamic> data = jsonDecode(response.body);
+    return data['categorias'];
+  }
+  return [];
+}
+
+Future<List> consultarRestaurantes({String categoria_busqueda = '', String termino_busqueda = ''}) async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  String access_token = prefs.getString('token_access');
+  String refresh_token = prefs.getString('token_refresh');
+  // String categoria_busqueda = prefs.getString('categoria_busqueda');
+
+  await verificarTokens(access_token, refresh_token, prefs);
+  access_token = prefs.getString('token_access');
+
+  Position position = await getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+  double lat = position.latitude;
+  double long = position.longitude;
+
+  Map<String, String> query_parameters = {
+    'lat': lat.toString(),
+    'long': long.toString(),
+    'cat': categoria_busqueda,
+    't': termino_busqueda
+  };
+
+  var uri = Uri.parse(Constants.API_URL_GET_RESTAURANTES);
+  uri = uri.replace(queryParameters: query_parameters);
+  http.Response response = await http.get(
+    uri,
+    headers: <String, String>{
+      'Content-Type': 'application/json; charset=UTF-8',
+      'Authorization': 'Bearer ' + access_token,
+    }
+  );
+
+  if (response.statusCode == 200) {
+    Map<String, dynamic> data = jsonDecode(response.body);
+    return data['restaurantes'];
+  }
+  return [];
 }
