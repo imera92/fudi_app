@@ -39,6 +39,7 @@ class MyAppState extends State<MyApp> {
           primarySwatch: Colors.blue,
           visualDensity: VisualDensity.adaptivePlatformDensity,
           fontFamily: 'Made Future X',
+          primaryColor: Color.fromARGB(255, 219, 29, 45),
         ),
         // home: InitialScreen(),
         initialRoute: _rutaInicial,

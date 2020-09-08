@@ -27,8 +27,9 @@ class ScreenArguments {
 class MenuArguments {
   final String nombreRestaurante;
   final int idRestaurante;
+  final double costoEnvio;
 
-  MenuArguments(this.nombreRestaurante, this.idRestaurante);
+  MenuArguments(this.nombreRestaurante, this.idRestaurante, this.costoEnvio);
 }
 
 class PantallaPrincipal extends StatefulWidget {
@@ -104,7 +105,7 @@ class PantallaPrincipalState extends State<PantallaPrincipal> {
                                 ),
                               ),
                               onTap: () {
-                                MenuArguments dataRestaurante = MenuArguments(restaurante['nombre'], restaurante['id']);
+                                MenuArguments dataRestaurante = MenuArguments(restaurante['nombre'], restaurante['id'], double.parse(restaurante['costo_envio']));
                                 Navigator.pushNamed(
                                     context,
                                     PantallaPrincipalNavigatorRoutes.menu,
@@ -195,7 +196,7 @@ class PantallaPrincipalState extends State<PantallaPrincipal> {
           if (routeSettings.name == PantallaPrincipalNavigatorRoutes.menu) {
             MenuArguments datosRestaurante = routeSettings.arguments;
             return MaterialPageRoute(
-              builder: (context) => PantallaMenu(datosRestaurante.nombreRestaurante, datosRestaurante.idRestaurante)
+              builder: (context) => PantallaMenu(datosRestaurante)
             );
           }
 
@@ -380,7 +381,7 @@ class PantallaRestaurantesPorCategoriaState extends State<PantallaRestaurantesPo
                           ),
                         ),
                         onTap: () {
-                          MenuArguments dataRestaurante = MenuArguments(restaurante['nombre'], restaurante['id']);
+                          MenuArguments dataRestaurante = MenuArguments(restaurante['nombre'], restaurante['id'], double.parse(restaurante['costo_envio']));
                           Navigator.pushNamed(
                               context,
                               PantallaPrincipalNavigatorRoutes.menu,
@@ -408,28 +409,23 @@ class PantallaRestaurantesPorCategoriaState extends State<PantallaRestaurantesPo
 }
 
 class PantallaMenu extends StatefulWidget {
-  PantallaMenu(this.nombreRestaurante, this.restauranteId, {Key key, this.title}) : super(key: key);
+  PantallaMenu(this.restauranteData, {Key key, this.title}) : super(key: key);
 
   final String title;
-  final String nombreRestaurante;
-  final int restauranteId;
+  final MenuArguments restauranteData;
 
   @override
-  PantallaMenuState createState() => PantallaMenuState(nombreRestaurante, restauranteId);
+  PantallaMenuState createState() => PantallaMenuState(restauranteData);
 }
 
 class PantallaMenuState extends State<PantallaMenu> {
-  final String _nombreRestaurante;
-  final int _restauranteId;
-  // Future<List> _categorias;
-  // Future<Map> _restaurantes;
-  Future<Map> _restauranteData;
+  final MenuArguments _restauranteData;
 
-  PantallaMenuState(this._nombreRestaurante, this._restauranteId);
+  PantallaMenuState(this._restauranteData);
 
   @override
   void initState() {
-    _restauranteData = consultarMenuRestaurante(_restauranteId);
+    consultarMenuRestaurante(_restauranteData.idRestaurante);
     super.initState();
   }
 
@@ -451,7 +447,7 @@ class PantallaMenuState extends State<PantallaMenu> {
                   color: Color.fromARGB(175, 255, 255, 255),
                 ),
                 child: Text(
-                  _nombreRestaurante,
+                    _restauranteData.nombreRestaurante,
                  style: TextStyle(
                    color: Colors.black87,
                    fontSize: 18,
@@ -550,7 +546,8 @@ class PantallaMenuState extends State<PantallaMenu> {
                       ),
                       onTap: (){
                         bloc.anadirAlCarrito(producto);
-                        bloc.setearRestauranteCarrito(_nombreRestaurante);
+                        bloc.setCostoEnvio(_restauranteData.costoEnvio);
+                        bloc.setRestauranteCarrito(_restauranteData.nombreRestaurante);
                       },
                     ),
                   ];

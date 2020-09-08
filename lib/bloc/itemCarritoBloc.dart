@@ -10,9 +10,11 @@ class ItemsCarritoBloc {
     'productos': {},
     'items_carrito': {},
     'subtotal_carrito': 0,
+    'costoEnvio': 0,
     'categoriaEnPantalla': Null,
     'restauranteEnPantalla': Null,
     'nombreRestauranteCarrito': '',
+    'fechaPedidoProgramado': null
   };
 
   void resetRestaurante() {
@@ -91,8 +93,18 @@ class ItemsCarritoBloc {
     allItems['subtotal_carrito'] = subtotal;
   }
 
-  void setearRestauranteCarrito(String nombreRestauranteCarrito) {
+  void setRestauranteCarrito(String nombreRestauranteCarrito) {
     allItems['nombreRestauranteCarrito'] = nombreRestauranteCarrito;
+    carritoStreamController.sink.add(allItems);
+  }
+
+  void setFechaPedidoProgramado(fecha) {
+    allItems['fechaPedidoProgramado'] = fecha;
+    carritoStreamController.sink.add(allItems);
+  }
+
+  void setCostoEnvio(costoEnvio) {
+    allItems['costoEnvio'] = costoEnvio;
     carritoStreamController.sink.add(allItems);
   }
 

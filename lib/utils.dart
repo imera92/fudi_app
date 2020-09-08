@@ -143,7 +143,7 @@ void consultarRestaurantes({String categoria_busqueda = '', String termino_busqu
   }
 }
 
-Future<Map> consultarMenuRestaurante(int restauranteId) async {
+void consultarMenuRestaurante(int restauranteId) async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
   String access_token = prefs.getString('token_access');
   String refresh_token = prefs.getString('token_refresh');
@@ -169,7 +169,5 @@ Future<Map> consultarMenuRestaurante(int restauranteId) async {
       bloc.anadirProductoRestaurante(producto);
     }
     bloc.setRestauranteEnPantalla(restauranteId);
-    return data;
   }
-  return {};
 }
