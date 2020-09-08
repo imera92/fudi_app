@@ -5,6 +5,7 @@ import 'dart:convert' show jsonEncode, jsonDecode;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:geolocator/geolocator.dart';
 import './bloc/itemCarritoBloc.dart';
+import './bloc/buscadorBloc.dart';
 
 void verificarTokens(String access_token, String refresh_token, SharedPreferences prefs) async {
   bool acces_token_is_valid = true;
@@ -81,7 +82,7 @@ void verificarTokens(String access_token, String refresh_token, SharedPreference
   }
 }
 
-Future<List> consultarCategorias() async {
+void consultarCategorias() async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
   String access_token = prefs.getString('token_access');
   String refresh_token = prefs.getString('token_refresh');
@@ -99,16 +100,16 @@ Future<List> consultarCategorias() async {
 
   if (response.statusCode == 200) {
     Map<String, dynamic> data = jsonDecode(response.body);
-    return data['categorias'];
+    for (Map categoria in data['categorias']) {
+      buscadorBloc.anadirCategoria(categoria);
+    }
   }
-  return [];
 }
 
-Future<List> consultarRestaurantes({String categoria_busqueda = '', String termino_busqueda = ''}) async {
+void consultarRestaurantes({String categoria_busqueda = '', String termino_busqueda = ''}) async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
   String access_token = prefs.getString('token_access');
   String refresh_token = prefs.getString('token_refresh');
-  // String categoria_busqueda = prefs.getString('categoria_busqueda');
 
   await verificarTokens(access_token, refresh_token, prefs);
   access_token = prefs.getString('token_access');
@@ -136,9 +137,10 @@ Future<List> consultarRestaurantes({String categoria_busqueda = '', String termi
 
   if (response.statusCode == 200) {
     Map<String, dynamic> data = jsonDecode(response.body);
-    return data['restaurantes'];
+    for (Map restaurante in data['restaurantes']) {
+      buscadorBloc.anadirRestaurante(restaurante);
+    }
   }
-  return [];
 }
 
 Future<Map> consultarMenuRestaurante(int restauranteId) async {

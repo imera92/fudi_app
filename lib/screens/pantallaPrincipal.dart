@@ -8,10 +8,13 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:geolocator/geolocator.dart';
 import '../utils.dart';
 import '../bloc/itemCarritoBloc.dart';
+import '../bloc/buscadorBloc.dart';
+import './pedido.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 
 class PantallaPrincipalNavigatorRoutes {
   static const String root = '/';
-  static const String tiendas = '/tiendas';
+  static const String restaurantesPorCategoria = '/restaurantes';
   static const String menu = '/menu';
 }
 
@@ -41,38 +44,17 @@ class PantallaPrincipalState extends State<PantallaPrincipal> {
   final _busquedaController = TextEditingController();
   int _currentIndex = 0;
   bool _buscandoRestaurantes = false;
-  List<Widget> _listaRestaurantes = List<Widget>();
+
+  @override
+  void initState() {
+    consultarCategorias();
+    super.initState();
+  }
 
   void _submitCallback(String value) {
-    consultarRestaurantes(termino_busqueda:value).then((restaurantesData) {
-      _listaRestaurantes.clear();
-      for (Map restaurante in restaurantesData) {
-        _listaRestaurantes.add(
-          GestureDetector(
-            child: Container(
-              child: Column(
-                children: <Widget>[
-                  Image.asset('assets/images/default_banner.png', width: double.infinity),
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                        color: Colors.white,
-                        border: Border.all(color: Color.fromARGB(255, 204, 204, 204))
-                    ),
-                    child: Text(restaurante['nombre']),
-                  )
-                ],
-              ),
-            ),
-            onTap: () {},
-          ),
-        );
-      }
-      setState(() {
-        _buscandoRestaurantes = true;
-      });
-    });
+    _buscandoRestaurantes = true;
+    buscadorBloc.resetRestaurantes();
+    consultarRestaurantes(termino_busqueda: value);
   }
 
   void _callbackLimpiarBusqueda() {
@@ -87,61 +69,109 @@ class PantallaPrincipalState extends State<PantallaPrincipal> {
         return Container(
           padding: EdgeInsets.only(top: 30, right: 0, bottom: 40, left: 0),
           color: Colors.white,
-          child: FutureBuilder<List>(
-              future: consultarCategorias(),
-              builder: (context, AsyncSnapshot snapshot) {
-                List<Widget> categorias = List<Widget>();
+          child: Column(
+            children: <Widget>[
+              BusquedaField(_busquedaController, _submitCallback, _callbackLimpiarBusqueda),
+              Expanded(
+                child: StreamBuilder(
+                  initialData: buscadorBloc.buscadorData,
+                  stream: buscadorBloc.getStream,
+                  builder: (context, AsyncSnapshot snapshot) {
+                    List<Widget> itemsBuscador = List<Widget>();
+                    bool mostrarAnimacion = false;
 
-                if (snapshot.hasData) {
-                  List categoriasData = snapshot.data;
-
-                  for (Map categoria in categoriasData) {
-                    categorias.add(
-                      GestureDetector(
-                        child: Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(12),
-                            color: Color.fromARGB(255, 248, 244, 244),
-                          ),
-                          child: Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: <Widget>[
-                                Image.asset('assets/images/' + categoria['imagen'], width: 100),
-                                Text(categoria['nombre']),
-                              ],
+                    if (_buscandoRestaurantes) {
+                      if (snapshot.data['restaurantes'].length == 0) {
+                        mostrarAnimacion = true;
+                      } else {
+                        for (Map restaurante in snapshot.data['restaurantes']) {
+                          itemsBuscador.add(
+                            GestureDetector(
+                              child: Container(
+                                child: Column(
+                                  children: <Widget>[
+                                    Image.asset('assets/images/default_banner.png', width: double.infinity),
+                                    Container(
+                                      width: double.infinity,
+                                      padding: const EdgeInsets.all(8),
+                                      decoration: BoxDecoration(
+                                          color: Colors.white,
+                                          border: Border.all(color: Color.fromARGB(255, 204, 204, 204))
+                                      ),
+                                      child: Text(restaurante['nombre']),
+                                    )
+                                  ],
+                                ),
+                              ),
+                              onTap: () {
+                                MenuArguments dataRestaurante = MenuArguments(restaurante['nombre'], restaurante['id']);
+                                Navigator.pushNamed(
+                                    context,
+                                    PantallaPrincipalNavigatorRoutes.menu,
+                                    arguments: dataRestaurante
+                                );
+                              },
                             ),
-                          ),
-                        ),
-                        onTap: () async {
-                          List listaRestaurantes = await consultarRestaurantes(categoria_busqueda: categoria['id'].toString());
-                          Navigator.pushNamed(
-                              context,
-                              PantallaPrincipalNavigatorRoutes.tiendas,
-                              arguments: listaRestaurantes
                           );
-                        },
-                      ),
-                    );
-                  }
-                }
+                        }
+                      }
+                    } else {
+                      if (snapshot.data['categorias'].length == 0) {
+                        mostrarAnimacion = true;
+                      } else {
+                        for (Map categoria in snapshot.data['categorias']) {
+                          itemsBuscador.add(
+                            GestureDetector(
+                              child: Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(12),
+                                  color: Color.fromARGB(255, 248, 244, 244),
+                                ),
+                                child: Center(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: <Widget>[
+                                      Image.asset('assets/images/' + categoria['imagen'], width: 100),
+                                      Text(categoria['nombre']),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              onTap: () {
+                                buscadorBloc.resetRestaurantes();
+                                consultarRestaurantes(categoria_busqueda: categoria['id'].toString());
+                                Navigator.pushNamed(
+                                  context,
+                                  PantallaPrincipalNavigatorRoutes.restaurantesPorCategoria,
+                                );
+                              },
+                            ),
+                          );
+                        }
+                      }
+                    }
 
-                return Column(
-                  children: <Widget>[
-                    BusquedaField(_busquedaController, _submitCallback, _callbackLimpiarBusqueda),
-                    Expanded(
-                      child: GridView.count(
+                    if (mostrarAnimacion) {
+                      return Center(
+                        child: SpinKitDoubleBounce(
+                          color: Colors.red,
+                          size: 50.0,
+                        ),
+                      );
+                    } else {
+                      return GridView.count(
                         padding: const EdgeInsets.symmetric(horizontal: 40),
                         crossAxisSpacing: 10,
                         mainAxisSpacing: 10,
                         crossAxisCount: _buscandoRestaurantes ? 1 : 2,
-                        children: _buscandoRestaurantes ? _listaRestaurantes : categorias,
-                      ),
-                    ),
-                  ],
-                );
-              }
+                        children: itemsBuscador,
+                      );
+                    }
+                  }
+                ),
+              )
+            ]
           ),
         );
       }
@@ -156,9 +186,9 @@ class PantallaPrincipalState extends State<PantallaPrincipal> {
       Navigator(
         initialRoute: '/',
         onGenerateRoute: (routeSettings) {
-          if (routeSettings.name == PantallaPrincipalNavigatorRoutes.tiendas) {
+          if (routeSettings.name == PantallaPrincipalNavigatorRoutes.restaurantesPorCategoria) {
             return MaterialPageRoute(
-                builder: (context) => PantallaTiendas(routeSettings.arguments)
+              builder: (context) => PantallaRestaurantesPorCategoria()
             );
           }
 
@@ -177,9 +207,7 @@ class PantallaPrincipalState extends State<PantallaPrincipal> {
       Center(
         child: Text('Aquí van las órdenes')
       ),
-      Center(
-        child: Text('Aquí va el carrito')
-      )
+      PantallaPedido()
     ];
 
     return Scaffold(
@@ -282,61 +310,25 @@ class PantallaPrincipalState extends State<PantallaPrincipal> {
   }
 }
 
-class PantallaTiendas extends StatefulWidget {
-  PantallaTiendas(this.listaRestaurantes, {Key key, this.title}) : super(key: key);
+class PantallaRestaurantesPorCategoria extends StatefulWidget {
+  PantallaRestaurantesPorCategoria({Key key, this.title}) : super(key: key);
 
   final String title;
-  final List listaRestaurantes;
 
   @override
-  PantallaTiendasState createState() => PantallaTiendasState(listaRestaurantes);
+  PantallaRestaurantesPorCategoriaState createState() => PantallaRestaurantesPorCategoriaState();
 }
 
-class PantallaTiendasState extends State<PantallaTiendas> {
-  final List _listaRestaurantes;
-
-  PantallaTiendasState(this._listaRestaurantes);
+class PantallaRestaurantesPorCategoriaState extends State<PantallaRestaurantesPorCategoria> {
 
   @override
   Widget build(BuildContext context) {
-    List<Widget> restaurantes = List<Widget>();
-    for (Map restaurante in _listaRestaurantes) {
-      restaurantes.add(
-        GestureDetector(
-          child: Container(
-            child: Column(
-              children: <Widget>[
-                Image.asset('assets/images/default_banner.png', width: double.infinity),
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    border: Border.all(color: Color.fromARGB(255, 204, 204, 204))
-                  ),
-                  child: Text(restaurante['nombre']),
-                )
-              ],
-            ),
-          ),
-          onTap: () {
-            MenuArguments dataRestaurante = MenuArguments(restaurante['nombre'], restaurante['id']);
-            Navigator.pushNamed(
-                context,
-                PantallaPrincipalNavigatorRoutes.menu,
-                arguments: dataRestaurante
-            );
-          },
-        ),
-      );
-    }
 
     return Container(
       padding: EdgeInsets.only(top: 30, right: 0, bottom: 40, left: 0),
       color: Colors.white,
       child: Column(
         children: <Widget>[
-          // BusquedaField(_busquedaController),
           Container(
             padding: EdgeInsets.only(top: 20, right: 20, bottom: 20, left: 20),
               child: Row(
@@ -355,12 +347,58 @@ class PantallaTiendasState extends State<PantallaTiendas> {
               )
           ),
           Expanded(
-            child: GridView.count(
-              padding: const EdgeInsets.symmetric(horizontal: 40),
-              crossAxisSpacing: 10,
-              mainAxisSpacing: 10,
-              crossAxisCount: 1,
-              children: restaurantes,
+            child: StreamBuilder(
+              initialData: buscadorBloc.buscadorData,
+              stream: buscadorBloc.getStream,
+              builder: (context, AsyncSnapshot snapshot) {
+                if (snapshot.data['restaurantes'].length == 0) {
+                  return Center(
+                    child: SpinKitDoubleBounce(
+                      color: Colors.red,
+                      size: 50.0,
+                    ),
+                  );
+                } else {
+                  List<Widget> restaurantes = List<Widget>();
+                  for (Map restaurante in snapshot.data['restaurantes']) {
+                    restaurantes.add(
+                      GestureDetector(
+                        child: Container(
+                          child: Column(
+                            children: <Widget>[
+                              Image.asset('assets/images/default_banner.png', width: double.infinity),
+                              Container(
+                                width: double.infinity,
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    border: Border.all(color: Color.fromARGB(255, 204, 204, 204))
+                                ),
+                                child: Text(restaurante['nombre']),
+                              )
+                            ],
+                          ),
+                        ),
+                        onTap: () {
+                          MenuArguments dataRestaurante = MenuArguments(restaurante['nombre'], restaurante['id']);
+                          Navigator.pushNamed(
+                              context,
+                              PantallaPrincipalNavigatorRoutes.menu,
+                              arguments: dataRestaurante
+                          );
+                        },
+                      ),
+                    );
+                  }
+                  return GridView.count(
+                    padding: const EdgeInsets.symmetric(horizontal: 40),
+                    crossAxisSpacing: 10,
+                    mainAxisSpacing: 10,
+                    crossAxisCount: 1,
+                    children: restaurantes,
+                  );
+                }
+              }
             ),
           ),
         ],
@@ -512,6 +550,7 @@ class PantallaMenuState extends State<PantallaMenu> {
                       ),
                       onTap: (){
                         bloc.anadirAlCarrito(producto);
+                        bloc.setearRestauranteCarrito(_nombreRestaurante);
                       },
                     ),
                   ];

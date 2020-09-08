@@ -11,7 +11,8 @@ class ItemsCarritoBloc {
     'items_carrito': {},
     'subtotal_carrito': 0,
     'categoriaEnPantalla': Null,
-    'restauranteEnPantalla': Null
+    'restauranteEnPantalla': Null,
+    'nombreRestauranteCarrito': '',
   };
 
   void resetRestaurante() {
@@ -46,9 +47,12 @@ class ItemsCarritoBloc {
   }
 
   void anadirAlCarrito(producto) {
-    if (producto['comercio'] != allItems['restauranteEnPantalla']) {
-      allItems['items_carrito'] = {};
-    }
+    allItems['items_carrito'].forEach((id, producto) {
+      if (producto['comercio'] != allItems['restauranteEnPantalla']) {
+        allItems['items_carrito'].remove(id);
+      }
+    });
+
     if (allItems['items_carrito'].containsKey(producto['id'])) {
       allItems['items_carrito'][producto['id']]['cantidad']++;
     } else {
@@ -87,9 +91,8 @@ class ItemsCarritoBloc {
     allItems['subtotal_carrito'] = subtotal;
   }
 
-  void removeFromCart(item) {
-    allItems['cart items'].remove(item);
-    allItems['shop items'].add(item);
+  void setearRestauranteCarrito(String nombreRestauranteCarrito) {
+    allItems['nombreRestauranteCarrito'] = nombreRestauranteCarrito;
     carritoStreamController.sink.add(allItems);
   }
 
