@@ -10,6 +10,7 @@ import '../utils.dart';
 import '../bloc/itemCarritoBloc.dart';
 import '../bloc/buscadorBloc.dart';
 import './pedido.dart';
+import './home.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 
 class PantallaPrincipalNavigatorRoutes {
@@ -184,6 +185,7 @@ class PantallaPrincipalState extends State<PantallaPrincipal> {
     var routeWidget = _routeWidgets(context);
 
     final tabs = <Widget>[
+      PantallaHome(),
       Navigator(
         initialRoute: '/',
         onGenerateRoute: (routeSettings) {
@@ -204,9 +206,6 @@ class PantallaPrincipalState extends State<PantallaPrincipal> {
             builder: (context) => routeWidget[routeSettings.name](context)
           );
         }
-      ),
-      Center(
-        child: Text('Aquí van las órdenes')
       ),
       PantallaPedido()
     ];
@@ -255,6 +254,16 @@ class PantallaPrincipalState extends State<PantallaPrincipal> {
         stream: bloc.getStream,
         builder: (context, AsyncSnapshot snapshot) {
           List<BottomNavigationBarItem> navigationItems = [
+            BottomNavigationBarItem(
+                icon: Container(
+                  child: Icon(Icons.home),
+                  padding: EdgeInsets.symmetric(vertical: 5),
+                ),
+                title: Container(
+                  child: Text('Inicio'),
+                  padding: EdgeInsets.only(bottom: 5),
+                )
+            ),
             BottomNavigationBarItem(
                 icon: Container(
                   child: Icon(Icons.search),

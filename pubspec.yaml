@@ -57,6 +57,7 @@ flutter:
     - assets/images/rapida.png
     - assets/images/tipica.png
     - assets/images/default_banner.png
+    - assets/images/ubicacion-icon.png
 
   # To add assets to your application, add an assets section, like this:
   # assets:

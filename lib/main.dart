@@ -3,6 +3,8 @@ import 'screens/initialScreen.dart';
 import 'screens/pantallaPrincipal.dart';
 // import 'package:oktoast/oktoast.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import './utils.dart';
+import './navigationService.dart';
 
 Future main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -46,7 +48,8 @@ class MyAppState extends State<MyApp> {
         routes: <String, WidgetBuilder>{
           '/': (BuildContext context) => PantallaPrincipal(),
           '/pantallaInicial': (BuildContext context) => InitialScreen(),
-        }
+        },
+      navigatorKey: navigationService.pantallaPrincipalNavigatorKey,
     );
   }
 }
