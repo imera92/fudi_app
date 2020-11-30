@@ -12,22 +12,25 @@ class ItemsCarritoBloc {
     'subtotal_carrito': 0,
     'costoEnvio': 0,
     'categoriaEnPantalla': Null,
-    'restauranteEnPantalla': Null,
+    'restauranteOrden': Null,
     'nombreRestauranteCarrito': '',
-    'fechaPedidoProgramado': null
+    'tipoEntrega': 'IN',
+    'fechaPedidoProgramado': null,
+    'ordenId': null,
+    'longitud': 0,
+    'latitud': 0
   };
 
   void resetRestaurante() {
     allItems['categorias'] = [];
     allItems['productos'] = {};
     allItems['categoriaEnPantalla'] = Null;
-    allItems['restauranteEnPantalla'] = Null;
   }
 
-  void setRestauranteEnPantalla(int restauranteId) {
-    allItems['restauranteEnPantalla'] = restauranteId;
+  /*void setRestauranteOrden(int restauranteId) {
+    allItems['restauranteOrden'] = restauranteId;
     carritoStreamController.sink.add(allItems);
-  }
+  }*/
 
   void anadirCategoria(categoria) {
     allItems['categorias'].add(categoria);
@@ -49,12 +52,11 @@ class ItemsCarritoBloc {
   }
 
   void anadirAlCarrito(producto) {
-    allItems['items_carrito'].forEach((id, producto) {
-      if (producto['comercio'] != allItems['restauranteEnPantalla']) {
-        allItems['items_carrito'].remove(id);
-      }
-    });
+    if (producto['comercio'] != allItems['restauranteOrden']) {
+      allItems['items_carrito'].clear();
+    }
 
+    allItems['restauranteOrden'] = producto['comercio'];
     if (allItems['items_carrito'].containsKey(producto['id'])) {
       allItems['items_carrito'][producto['id']]['cantidad']++;
     } else {
@@ -106,6 +108,59 @@ class ItemsCarritoBloc {
   void setCostoEnvio(costoEnvio) {
     allItems['costoEnvio'] = costoEnvio;
     carritoStreamController.sink.add(allItems);
+  }
+
+  void setOrdenId(ordenId) {
+    allItems['ordenId'] = ordenId;
+    carritoStreamController.sink.add(allItems);
+  }
+
+  void setTipoEntrega(String tipoEntrega) {
+    allItems['tipoEntrega'] = tipoEntrega;
+    carritoStreamController.sink.add(allItems);
+  }
+
+  void setLatitud(double latitud) {
+    allItems['latitud'] = latitud;
+    carritoStreamController.sink.add(allItems);
+  }
+
+  void setLongitud(double longitud) {
+    allItems['longitud'] = longitud;
+    carritoStreamController.sink.add(allItems);
+  }
+
+  Map generarDataPedido() {
+    Map data = {};
+    // Guardamos los productos
+    data['productos'] = [];
+    allItems['items_carrito'].forEach((id, producto){
+      Map dataProducto = {};
+      dataProducto['producto'] = id;
+      dataProducto['cantidad'] = producto['cantidad'];
+      dataProducto['descuento'] = 0.00;
+      data['productos'].add(dataProducto);
+    });
+
+    // Guardamos el tipo de entrega
+    data['tipo_entrega'] = allItems['tipoEntrega'];
+
+    // Guardamos la fecha de emisión de la orden
+    data['fecha_emision'] = DateTime.now().toString();
+
+    // Guardamos el subtotal, costo de envío y total de la orden
+    data['subtotal'] = allItems['subtotal_carrito'];
+    data['costo_envio'] = allItems['costoEnvio'];
+    data['total'] = allItems['subtotal_carrito'] + allItems['costoEnvio'];
+
+    // Guardamos las coordenadas
+    data['latitud'] = allItems['latitud'];
+    data['longitud'] = allItems['longitud'];
+
+    // Guardamos el ID del restaurante
+    data['comercio'] = allItems['restauranteOrden'];
+
+    return data;
   }
 
   void dispose() {

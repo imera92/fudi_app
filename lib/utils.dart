@@ -3,9 +3,10 @@ import 'package:http/http.dart' as http;
 import 'constants.dart' as Constants;
 import 'dart:convert' show jsonEncode, jsonDecode;
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:geolocator/geolocator.dart';
+// import 'package:geolocator/geolocator.dart';
 import './bloc/itemCarritoBloc.dart';
-import './bloc/buscadorBloc.dart';
+// import './bloc/buscadorBloc.dart';
+import './bloc/pedidoSeguimientoBloc.dart';
 
 void verificarTokens(String access_token, String refresh_token, SharedPreferences prefs) async {
   bool acces_token_is_valid = true;
@@ -82,67 +83,6 @@ void verificarTokens(String access_token, String refresh_token, SharedPreference
   }
 }
 
-void consultarCategorias() async {
-  SharedPreferences prefs = await SharedPreferences.getInstance();
-  String access_token = prefs.getString('token_access');
-  String refresh_token = prefs.getString('token_refresh');
-
-  await verificarTokens(access_token, refresh_token, prefs);
-  access_token = prefs.getString('token_access');
-
-  http.Response response = await http.get(
-    Constants.API_URL_GET_CATEGORIAS,
-    headers: <String, String>{
-      'Content-Type': 'application/json; charset=UTF-8',
-      'Authorization': 'Bearer ' + access_token,
-    },
-  );
-
-  if (response.statusCode == 200) {
-    Map<String, dynamic> data = jsonDecode(response.body);
-    for (Map categoria in data['categorias']) {
-      buscadorBloc.anadirCategoria(categoria);
-    }
-  }
-}
-
-void consultarRestaurantes({String categoria_busqueda = '', String termino_busqueda = ''}) async {
-  SharedPreferences prefs = await SharedPreferences.getInstance();
-  String access_token = prefs.getString('token_access');
-  String refresh_token = prefs.getString('token_refresh');
-
-  await verificarTokens(access_token, refresh_token, prefs);
-  access_token = prefs.getString('token_access');
-
-  Position position = await getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
-  double lat = position.latitude;
-  double long = position.longitude;
-
-  Map<String, String> query_parameters = {
-    'lat': lat.toString(),
-    'long': long.toString(),
-    'cat': categoria_busqueda,
-    't': termino_busqueda
-  };
-
-  var uri = Uri.parse(Constants.API_URL_GET_RESTAURANTES);
-  uri = uri.replace(queryParameters: query_parameters);
-  http.Response response = await http.get(
-    uri,
-    headers: <String, String>{
-      'Content-Type': 'application/json; charset=UTF-8',
-      'Authorization': 'Bearer ' + access_token,
-    }
-  );
-
-  if (response.statusCode == 200) {
-    Map<String, dynamic> data = jsonDecode(response.body);
-    for (Map restaurante in data['restaurantes']) {
-      buscadorBloc.anadirRestaurante(restaurante);
-    }
-  }
-}
-
 void consultarMenuRestaurante(int restauranteId) async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
   String access_token = prefs.getString('token_access');
@@ -168,6 +108,57 @@ void consultarMenuRestaurante(int restauranteId) async {
     for (Map producto in data['productos']) {
       bloc.anadirProductoRestaurante(producto);
     }
-    bloc.setRestauranteEnPantalla(restauranteId);
+  }
+}
+
+void crearOrden(Map ordenData) async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  String access_token = prefs.getString('token_access');
+  String refresh_token = prefs.getString('token_refresh');
+
+  await verificarTokens(access_token, refresh_token, prefs);
+  access_token = prefs.getString('token_access');
+
+  http.Response response = await http.post(
+    Constants.API_URL_POST_ORDEN,
+    headers: <String, String>{
+      'Content-Type': 'application/json; charset=UTF-8',
+      'Authorization': 'Bearer ' + access_token,
+    },
+    body: jsonEncode(ordenData)
+  );
+
+  if (response.statusCode == 200) {
+    Map data = jsonDecode(response.body);
+    debugPrint(data['orden_id'].toString());
+    bloc.setOrdenId(data['orden_id']);
+  }
+}
+
+void consultarOrdenPendiente() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  String access_token = prefs.getString('token_access');
+  String refresh_token = prefs.getString('token_refresh');
+
+  await verificarTokens(access_token, refresh_token, prefs);
+  access_token = prefs.getString('token_access');
+
+  http.Response response = await http.get(
+    Constants.API_URL_GET_ORDEN_PENDIENTE,
+    headers: <String, String>{
+      'Content-Type': 'application/json; charset=UTF-8',
+      'Authorization': 'Bearer ' + access_token,
+    },
+  );
+
+  if (response.statusCode == 200) {
+    Map<String, dynamic> data = jsonDecode(response.body);
+    pedidoSeguimientoBloc.setOrdenId(data['orden_id']);
+    pedidoSeguimientoBloc.setEstado(data['estado']);
+    pedidoSeguimientoBloc.setSubtotal(data['subtotal']);
+    pedidoSeguimientoBloc.setCostoEnvio(data['costo_envio']);
+    for (Map producto in data['productos']) {
+      pedidoSeguimientoBloc.anadirProducto(producto);
+    }
   }
 }

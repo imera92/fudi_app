@@ -9,3 +9,5 @@ const String API_URL_GET_MENU_RESTAURANTE = API_ROOT + 'restaurantes/';
 const String API_URL_LOGIN = API_ROOT + 'token/';
 const String API_URL_TOKEN_VERIFY = API_ROOT + 'token/verify/';
 const String API_URL_TOKEN_REFRESH = API_ROOT + 'token/refresh/';
+const String API_URL_POST_ORDEN = API_ROOT + 'orden/';
+const String API_URL_GET_ORDEN_PENDIENTE = API_ROOT + 'orden/pendiente/';

@@ -1,17 +1,13 @@
-import 'dart:ffi';
 import 'package:flutter/material.dart';
 import '../widgets/busquedaField.dart';
-import 'package:http/http.dart' as http;
 import '../constants.dart' as Constants;
-import 'dart:convert' show jsonEncode, jsonDecode;
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:geolocator/geolocator.dart';
 import '../utils.dart';
 import '../bloc/itemCarritoBloc.dart';
 import '../bloc/buscadorBloc.dart';
 import './pedido.dart';
 import './home.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
+import './listaPedidos.dart';
 
 class PantallaPrincipalNavigatorRoutes {
   static const String root = '/';
@@ -49,14 +45,14 @@ class PantallaPrincipalState extends State<PantallaPrincipal> {
 
   @override
   void initState() {
-    consultarCategorias();
+    buscadorBloc.consultarCategorias();
     super.initState();
   }
 
   void _submitCallback(String value) {
     _buscandoRestaurantes = true;
     buscadorBloc.resetRestaurantes();
-    consultarRestaurantes(termino_busqueda: value);
+    buscadorBloc.consultarRestaurantes(termino_busqueda: value);
   }
 
   void _callbackLimpiarBusqueda() {
@@ -108,9 +104,9 @@ class PantallaPrincipalState extends State<PantallaPrincipal> {
                               onTap: () {
                                 MenuArguments dataRestaurante = MenuArguments(restaurante['nombre'], restaurante['id'], double.parse(restaurante['costo_envio']));
                                 Navigator.pushNamed(
-                                    context,
-                                    PantallaPrincipalNavigatorRoutes.menu,
-                                    arguments: dataRestaurante
+                                  context,
+                                  PantallaPrincipalNavigatorRoutes.menu,
+                                  arguments: dataRestaurante
                                 );
                               },
                             ),
@@ -142,7 +138,7 @@ class PantallaPrincipalState extends State<PantallaPrincipal> {
                               ),
                               onTap: () {
                                 buscadorBloc.resetRestaurantes();
-                                consultarRestaurantes(categoria_busqueda: categoria['id'].toString());
+                                buscadorBloc.consultarRestaurantes(categoria_busqueda: categoria['id'].toString());
                                 Navigator.pushNamed(
                                   context,
                                   PantallaPrincipalNavigatorRoutes.restaurantesPorCategoria,
@@ -207,6 +203,7 @@ class PantallaPrincipalState extends State<PantallaPrincipal> {
           );
         }
       ),
+      PantallaListaPedido(),
       PantallaPedido()
     ];
 

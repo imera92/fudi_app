@@ -12,13 +12,6 @@ class InitialScreen extends StatefulWidget {
 }
 
 class _InitialScreenState extends State<InitialScreen> {
-  // int _counter = 0;
-
-  /*void _incrementCounter() {
-    setState(() {
-      _counter++;
-    });
-  }*/
 
   Widget _btnLogin() {
     return InkWell(
@@ -72,6 +65,7 @@ class _InitialScreenState extends State<InitialScreen> {
     );
   }
 
+  // TODO: habilitar funcionalidad para ver tiendas sin iniciar sesión
   Widget _btnContinuar() {
     return InkWell(
       onTap: () {

@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/painting.dart';
 import 'package:flutter/widgets.dart';
 import '../bloc/itemCarritoBloc.dart';
-import 'package:flutter_datetime_picker/flutter_datetime_picker.dart';
 import 'package:intl/intl.dart';
+import '../utils.dart';
 
 class PantallaPedido extends StatefulWidget {
   PantallaPedido({Key key, this.title}) : super(key: key);
@@ -17,6 +17,7 @@ class PantallaPedido extends StatefulWidget {
 class PantallaPedidoState extends State<PantallaPedido> {
   final _telefonoController = TextEditingController();
   final _pagoEfectivoController = TextEditingController();
+  // String _tipoEntregaDropdownDefault = 'IN';
 
   Widget _titulo() {
     return Container(
@@ -42,6 +43,62 @@ class PantallaPedidoState extends State<PantallaPedido> {
     borderSide: const BorderSide(color: Color.fromARGB(255, 219, 29, 45)),
     borderRadius: const BorderRadius.all(const Radius.circular(10.0))
   );
+
+  Widget _dropdownTipoEntrega() {
+    return Row(
+      children: <Widget>[
+        Expanded(
+          child: Container(
+            margin: EdgeInsets.symmetric(vertical: 5),
+            padding: const EdgeInsets.only(left: 10.0, right: 10.0, top: 5, bottom: 5),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(10.0),
+              border: Border.all(
+                color: Color.fromARGB(255, 219, 29, 45),
+              ),
+            ),
+            child: DropdownButtonHideUnderline(
+              child: DropdownButton(
+                // value: _tipoEntregaDropdownDefault,
+                value: bloc.allItems['tipoEntrega'],
+                items: [
+                  DropdownMenuItem(
+                    child: Row(
+                      children: <Widget>[
+                        Icon(Icons.directions_bike),
+                        Container(
+                          margin: EdgeInsets.only(left: 10),
+                          child: Text('Entrega inmediata'),
+                        ),
+                      ],
+                    ),
+                    value: 'IN',
+                  ),
+                  DropdownMenuItem(
+                    child: Row(
+                      children: <Widget>[
+                        Icon(Icons.calendar_today),
+                        Container(
+                          margin: EdgeInsets.only(left: 10),
+                          child: Text('Agendar pedido'),
+                        ),
+                      ],
+                    ),
+                    value: 'AG',
+                  ),
+                ],
+                onChanged: (value) {
+                  setState(() {
+                    bloc.setTipoEntrega(value);
+                  });
+                }
+              ),
+            ),
+          ),
+        )
+      ],
+    );
+  }
 
   Widget _botonProgramarPedido() {
     return GestureDetector(
@@ -81,7 +138,7 @@ class PantallaPedidoState extends State<PantallaPedido> {
         DateTime fechaInicio = DateTime.now();
         DateTime fechaFin = DateTime(fechaInicio.year, fechaInicio.month, fechaInicio.day + 5);
 
-        DatePicker.showDateTimePicker(
+        /*DatePicker.showDateTimePicker(
           context,
           showTitleActions: true,
           minTime: fechaInicio,
@@ -95,7 +152,7 @@ class PantallaPedidoState extends State<PantallaPedido> {
           // onCancel: ,
           currentTime: bloc.allItems['fechaPedidoProgramado'],
           locale: LocaleType.es
-        );
+        );*/
       },
     );
   }
@@ -216,7 +273,8 @@ class PantallaPedidoState extends State<PantallaPedido> {
                 SizedBox(
                   height: 10,
                 ),
-                _botonProgramarPedido(),
+                // _botonProgramarPedido(),
+                _dropdownTipoEntrega(),
                 _inputTelefono(),
                 SizedBox(
                   height: 40,
@@ -347,7 +405,9 @@ class PantallaPedidoState extends State<PantallaPedido> {
               children: <Widget>[
                 RaisedButton(
                   padding: EdgeInsets.only(top: 15, right: 50, bottom: 15, left: 50),
-                  onPressed: () {},
+                  onPressed: () {
+                    crearOrden(bloc.generarDataPedido());
+                  },
                   color: Color.fromARGB(255, 134, 5, 65),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(50),
