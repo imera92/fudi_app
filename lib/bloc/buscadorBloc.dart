@@ -47,6 +47,7 @@ class BuscadorBloc {
   }
 
   void consultarRestaurantes({String categoria_busqueda = '', String termino_busqueda = ''}) async {
+    // await sleep();
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String access_token = prefs.getString('token_access');
     String refresh_token = prefs.getString('token_refresh');
@@ -79,6 +80,10 @@ class BuscadorBloc {
       buscadorStreamController.sink.add(buscadorData);
     }
   }
+
+  /*Future sleep() {
+    return new Future.delayed(const Duration(seconds: 5), () => "1");
+  }*/
 
   void dispose() {
     buscadorStreamController.close(); // close our StreamController

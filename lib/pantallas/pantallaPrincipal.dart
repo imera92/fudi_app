@@ -4,12 +4,8 @@ import '../bloc/buscadorBloc.dart';
 import './pedido.dart';
 import './home.dart';
 import './listaPedidos.dart';
-import './busquedaPorCategorias.dart';
-
-class PantallaPrincipalNavigatorRoutes {
-  static const String root = '/';
-  static const String menu = '/menu';
-}
+import './tabBusqueda.dart';
+import '../navigationService.dart';
 
 class PantallaPrincipal extends StatefulWidget {
   PantallaPrincipal({Key key, this.title}) : super(key: key);
@@ -25,22 +21,7 @@ class PantallaPrincipalState extends State<PantallaPrincipal> {
 
   final _tabs = <Widget>[
     PantallaHome(),
-    Navigator(
-        initialRoute: '/',
-        onGenerateRoute: (routeSettings) {
-          if (routeSettings.name == PantallaPrincipalNavigatorRoutes.menu) {
-            MenuArguments datosRestaurante = routeSettings.arguments;
-            return MaterialPageRoute(
-                builder: (context) => PantallaMenu(datosRestaurante)
-            );
-          }
-
-          return MaterialPageRoute(
-              builder: (context) => routeWidget[routeSettings.name](context)
-          );
-        }
-    ),
-    PantallaBusquedaPorCategorias(),
+    TabBusqueda(navigationService.tabBusquedaNavigatorKey),
     PantallaListaPedido(),
     PantallaPedido()
   ];

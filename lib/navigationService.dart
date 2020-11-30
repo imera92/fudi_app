@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 class NavigationService {
   final GlobalKey<NavigatorState> pantallaPrincipalNavigatorKey = new GlobalKey<NavigatorState>();
+  final GlobalKey<NavigatorState> tabBusquedaNavigatorKey = new GlobalKey<NavigatorState>();
 
   /*Future<dynamic> navigateTo(String routeName) {
     return navigatorKey.currentState.pushNamed(routeName);

@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import 'screens/initialScreen.dart';
-import 'screens/pantallaPrincipal.dart';
-// import 'package:oktoast/oktoast.dart';
+import 'pantallas/initialScreen.dart';
+import 'pantallas/pantallaPrincipal.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import './utils.dart';
 import './navigationService.dart';
 
 Future main() async {
