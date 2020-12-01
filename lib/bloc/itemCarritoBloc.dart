@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'geoLocBloc.dart';
 
 class ItemsCarritoBloc {
   final carritoStreamController = StreamController.broadcast();
@@ -17,8 +18,8 @@ class ItemsCarritoBloc {
     'tipoEntrega': 'IN',
     'fechaPedidoProgramado': null,
     'ordenId': null,
-    'longitud': 0,
-    'latitud': 0
+    'telefono': '',
+    'denominacion': ''
   };
 
   void resetRestaurante() {
@@ -120,13 +121,13 @@ class ItemsCarritoBloc {
     carritoStreamController.sink.add(allItems);
   }
 
-  void setLatitud(double latitud) {
-    allItems['latitud'] = latitud;
+  void setTelefono(String telefono) {
+    allItems['telefono'] = telefono;
     carritoStreamController.sink.add(allItems);
   }
 
-  void setLongitud(double longitud) {
-    allItems['longitud'] = longitud;
+  void setDenominacionBillete(String denominacion) {
+    allItems['denominacion'] = denominacion;
     carritoStreamController.sink.add(allItems);
   }
 
@@ -145,6 +146,12 @@ class ItemsCarritoBloc {
     // Guardamos el tipo de entrega
     data['tipo_entrega'] = allItems['tipoEntrega'];
 
+    // Guardamos el numero de contacto
+    data['telefono'] = allItems['telefono'];
+
+    // Guardamos la denominacion del billete
+    data['denominacion'] = allItems['denominacion'];
+
     // Guardamos la fecha de emisión de la orden
     data['fecha_emision'] = DateTime.now().toString();
 
@@ -154,8 +161,8 @@ class ItemsCarritoBloc {
     data['total'] = allItems['subtotal_carrito'] + allItems['costoEnvio'];
 
     // Guardamos las coordenadas
-    data['latitud'] = allItems['latitud'];
-    data['longitud'] = allItems['longitud'];
+    data['latitud'] = geolocBloc.data['lat'].toString();
+    data['longitud'] = geolocBloc.data['long'].toString();
 
     // Guardamos el ID del restaurante
     data['comercio'] = allItems['restauranteOrden'];

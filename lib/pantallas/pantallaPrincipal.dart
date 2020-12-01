@@ -52,12 +52,12 @@ class PantallaPrincipalState extends State<PantallaPrincipal> {
           }
 
           return Visibility(
-            visible: visible && _currentIndex != 2,
+            visible: visible && _currentIndex == 1,
             child: RaisedButton(
               padding: EdgeInsets.only(top: 15, right: 50, bottom: 15, left: 50),
               onPressed: () {
                 setState(() {
-                  _currentIndex = 2;
+                  _currentIndex = 3;
                 });
               },
               color: Color.fromARGB(255, 134, 5, 65),

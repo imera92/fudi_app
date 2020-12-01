@@ -167,7 +167,10 @@ class PantallaPedidoState extends State<PantallaPedido> {
           focusedBorder: commonFieldBorder,
           hintText: '¿Número de teléfono?',
           prefixIcon: Icon(Icons.local_phone),
-        )
+        ),
+        onChanged: (text) {
+          bloc.setTelefono(text);
+        }
       ),
     );
   }
@@ -182,7 +185,10 @@ class PantallaPedidoState extends State<PantallaPedido> {
           focusedBorder: commonFieldBorder,
           hintText: 'Especifique el billete que usará para pagar',
           prefixIcon: Icon(Icons.attach_money),
-        )
+        ),
+        onChanged: (text) {
+          bloc.setDenominacionBillete(text);
+        }
       ),
     );
   }
